@@ -1,40 +1,54 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
+import Html as H exposing (Html)
+import Html.Attributes as H
+import Html.Events as H
 
 
 type alias Model =
-    { count : Int }
+    { text : String }
 
 
 initialModel : Model
 initialModel =
-    { count = 0 }
+    { text = "" }
 
 
 type Msg
-    = Increment
-    | Decrement
+    = InputText String
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Increment ->
-            { model | count = model.count + 1 }
-
-        Decrement ->
-            { model | count = model.count - 1 }
+        InputText txt ->
+            { model | text = txt }
 
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ button [ onClick Increment ] [ text "+" ]
-        , div [] [ text <| String.fromInt model.count ]
-        , button [ onClick Decrement ] [ text "-" ]
+    H.div [ H.class "container" ]
+        [ header
+        , textArea model
+        ]
+
+
+header : Html Msg
+header =
+    H.div [ H.class "header" ]
+        [ H.text "Peer Bin"
+        ]
+
+
+textArea : Model -> Html Msg
+textArea model =
+    H.div [ H.class "code-area" ]
+        [ H.textarea
+            [ H.placeholder "Enter code here"
+            , H.onInput InputText
+            ]
+            []
         ]
 
 

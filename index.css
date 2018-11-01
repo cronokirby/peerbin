@@ -25,6 +25,13 @@ body {
     height: 40px;
     padding-top: 10px;
     padding-left: 10px;
+    display: flex;
+    flex-flow: row;
+}
+
+.header-lang input {
+    margin-left: 20px;
+    width: 80px;
 }
 
 .code-area {

@@ -1,7 +1,7 @@
 # Peer Bin
 A peer to peer based code sharing site.
 
-The site can be accessed [here](https://cronokirby.github.io/peerbin)
+The site can be accessed [here](https://cronokirby.github.io/peerbin/)
 
 
 ## Building

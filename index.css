@@ -1,0 +1,44 @@
+html {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.container {
+    background-color: rgb(61, 61, 75);
+    height: 100%;
+    margin: 0;
+}
+
+.header {
+    background-color: rgb(75, 201, 173);
+    color: white;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    font-size: 22px;
+    height: 40px;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+
+.code-area {
+    display: flex;
+    flex-flow: column;
+    padding-left: 5%;
+    height: 80%;
+}
+
+.code-area textarea {
+    background-color: rgb(52, 52, 70);
+    color: lightgray;
+    font-family: monospace;
+    font-size: 18px;
+    width: 90%;
+    height: 100%;
+    border-width: 0;
+}
+    

@@ -41,6 +41,9 @@ header model =
         [ H.div [ H.class "header-title" ]
             [ H.text "Peer Bin"
             ]
+        , H.div [ H.class "share" ]
+            [ H.button [] [ H.text "share" ]
+            ]
         ]
 
 

@@ -61,6 +61,39 @@ body {
 }
 
 
+.header .language-input {
+    margin-left: auto;
+    margin-right: 10px;
+}
+
+.header .language-input input {
+    width: 100px;
+}
+
+.header .language-input button {
+    background-color: rgb(75, 201, 173);
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+
+    margin-left: 5px;
+    border-width: 0;
+    outline: 0;
+
+    height: 100%;
+    width: 60px;
+}
+
+.header .language-input button:hover {
+    box-shadow: 0 0px 9px 0 rgb(61, 61, 75);
+}
+
+.header .language-input button:active {
+    box-shadow: inset 0 0px 9px 0 rgb(61, 61, 75);
+}
+
+
 .code-area {
     flex-grow: 2;
     margin-left: auto;

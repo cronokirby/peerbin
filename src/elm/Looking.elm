@@ -78,7 +78,7 @@ langInput model =
         , H.button
             [ H.onClick SubmitLang
             ]
-            [ H.text "Submit"
+            [ H.text "Style"
             ]
         ]
 

@@ -4294,17 +4294,11 @@ function _Browser_load(url)
 		}
 	}));
 }
-var author$project$Main$initialModel = {text: ''};
-var author$project$Main$update = F2(
-	function (msg, model) {
-		var txt = msg.a;
-		return _Utils_update(
-			model,
-			{text: txt});
-	});
-var elm$core$Basics$identity = function (x) {
-	return x;
+var author$project$Editing$initialModel = {text: ''};
+var author$project$Main$Editing = function (a) {
+	return {$: 'Editing', a: a};
 };
+var author$project$Main$initialModel = author$project$Main$Editing(author$project$Editing$initialModel);
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$True = {$: 'True'};
 var elm$core$Result$isOk = function (result) {
@@ -4314,11 +4308,6 @@ var elm$core$Result$isOk = function (result) {
 		return false;
 	}
 };
-var elm$core$Array$branchFactor = 32;
-var elm$core$Array$Array_elm_builtin = F4(
-	function (a, b, c, d) {
-		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
-	});
 var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$GT = {$: 'GT'};
 var elm$core$Basics$LT = {$: 'LT'};
@@ -4399,6 +4388,11 @@ var elm$core$Array$foldr = F3(
 var elm$core$Array$toList = function (array) {
 	return A3(elm$core$Array$foldr, elm$core$List$cons, _List_Nil, array);
 };
+var elm$core$Array$branchFactor = 32;
+var elm$core$Array$Array_elm_builtin = F4(
+	function (a, b, c, d) {
+		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
+	});
 var elm$core$Basics$ceiling = _Basics_ceiling;
 var elm$core$Basics$fdiv = _Basics_fdiv;
 var elm$core$Basics$logBase = F2(
@@ -4780,6 +4774,139 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 			}
 		}
 	});
+var elm$core$Platform$Sub$batch = _Platform_batch;
+var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
+var author$project$Main$subscriptions = function (_n0) {
+	return elm$core$Platform$Sub$none;
+};
+var author$project$Editing$update = F2(
+	function (msg, model) {
+		if (msg.$ === 'InputText') {
+			var txt = msg.a;
+			return _Utils_update(
+				model,
+				{text: txt});
+		} else {
+			return model;
+		}
+	});
+var author$project$Looking$initialModel = function (txt) {
+	return {lang: 'plaintext', text: txt};
+};
+var author$project$Looking$NoParentMsg = {$: 'NoParentMsg'};
+var author$project$Looking$RedoHighlighting = F2(
+	function (a, b) {
+		return {$: 'RedoHighlighting', a: a, b: b};
+	});
+var author$project$Looking$update = F2(
+	function (msg, model) {
+		if (msg.$ === 'ChangeLang') {
+			var newLang = msg.a;
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{lang: newLang}),
+				author$project$Looking$NoParentMsg);
+		} else {
+			return _Utils_Tuple2(
+				model,
+				A2(author$project$Looking$RedoHighlighting, model.lang, model.text));
+		}
+	});
+var author$project$Main$Looking = function (a) {
+	return {$: 'Looking', a: a};
+};
+var elm$core$Basics$identity = function (x) {
+	return x;
+};
+var author$project$Main$client = _Platform_outgoingPort('client', elm$core$Basics$identity);
+var elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			elm$core$List$foldl,
+			F2(
+				function (_n0, obj) {
+					var k = _n0.a;
+					var v = _n0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var elm$json$Json$Encode$string = _Json_wrap;
+var author$project$Main$makeHighlight = F2(
+	function (style, text) {
+		var highlight = elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'style',
+					elm$json$Json$Encode$string(style)),
+					_Utils_Tuple2(
+					'text',
+					elm$json$Json$Encode$string(text))
+				]));
+		return elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2('highlight', highlight)
+				]));
+	});
+var elm$core$Platform$Cmd$batch = _Platform_batch;
+var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
+var author$project$Main$update = F2(
+	function (msg, model) {
+		var _n0 = _Utils_Tuple2(msg, model);
+		_n0$3:
+		while (true) {
+			if (_n0.a.$ === 'EditingMsg') {
+				if (_n0.b.$ === 'Editing') {
+					if (_n0.a.a.$ === 'Share') {
+						var _n1 = _n0.a.a;
+						var mod = _n0.b.a;
+						return _Utils_Tuple2(
+							author$project$Main$Looking(
+								author$project$Looking$initialModel(mod.text)),
+							elm$core$Platform$Cmd$none);
+					} else {
+						var msg1 = _n0.a.a;
+						var model1 = _n0.b.a;
+						return _Utils_Tuple2(
+							author$project$Main$Editing(
+								A2(author$project$Editing$update, msg1, model1)),
+							elm$core$Platform$Cmd$none);
+					}
+				} else {
+					break _n0$3;
+				}
+			} else {
+				if (_n0.b.$ === 'Looking') {
+					var msg1 = _n0.a.a;
+					var model1 = _n0.b.a;
+					var _n2 = A2(author$project$Looking$update, msg1, model1);
+					if (_n2.b.$ === 'RedoHighlighting') {
+						var newModel = _n2.a;
+						var _n3 = _n2.b;
+						var style = _n3.a;
+						var txt = _n3.b;
+						return _Utils_Tuple2(
+							author$project$Main$Looking(newModel),
+							author$project$Main$client(
+								A2(author$project$Main$makeHighlight, style, txt)));
+					} else {
+						var newModel = _n2.a;
+						return _Utils_Tuple2(
+							author$project$Main$Looking(newModel),
+							elm$core$Platform$Cmd$none);
+					}
+				} else {
+					break _n0$3;
+				}
+			}
+		}
+		return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+	});
+var author$project$Editing$Share = {$: 'Share'};
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
@@ -4798,7 +4925,6 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
-var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -4807,28 +4933,95 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
-var author$project$Main$header = A2(
-	elm$html$Html$div,
+var author$project$Views$wrapHeader = function (rest) {
+	var title = A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('header-title')
+			]),
+		_List_fromArray(
+			[
+				elm$html$Html$text('Peer Bin')
+			]));
+	return A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('header')
+			]),
+		A2(elm$core$List$cons, title, rest));
+};
+var elm$html$Html$button = _VirtualDom_node('button');
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
+var author$project$Editing$header = author$project$Views$wrapHeader(
 	_List_fromArray(
 		[
-			elm$html$Html$Attributes$class('header')
-		]),
-	_List_fromArray(
-		[
-			elm$html$Html$text('Peer Bin')
+			A2(
+			elm$html$Html$div,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('share')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$button,
+					_List_fromArray(
+						[
+							elm$html$Html$Events$onClick(author$project$Editing$Share)
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('share')
+						]))
+				]))
 		]));
-var author$project$Main$InputText = function (a) {
+var author$project$Editing$InputText = function (a) {
 	return {$: 'InputText', a: a};
+};
+var author$project$Views$wrapCodeArea = function (rest) {
+	return A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('code-area')
+			]),
+		rest);
 };
 var elm$html$Html$textarea = _VirtualDom_node('textarea');
 var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
+var elm$json$Json$Encode$bool = _Json_wrap;
+var elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$bool(bool));
+	});
+var elm$html$Html$Attributes$spellcheck = elm$html$Html$Attributes$boolProperty('spellcheck');
 var elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
 };
 var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
 	return {$: 'MayStopPropagation', a: a};
 };
-var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
 var elm$html$Html$Events$stopPropagationOn = F2(
 	function (event, decoder) {
 		return A2(
@@ -4911,42 +5104,145 @@ var elm$html$Html$Events$onInput = function (tagger) {
 			elm$html$Html$Events$alwaysStop,
 			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
-var author$project$Main$textArea = function (model) {
-	return A2(
-		elm$html$Html$div,
-		_List_fromArray(
-			[
-				elm$html$Html$Attributes$class('code-area')
-			]),
+var author$project$Editing$textArea = function (model) {
+	return author$project$Views$wrapCodeArea(
 		_List_fromArray(
 			[
 				A2(
 				elm$html$Html$textarea,
 				_List_fromArray(
 					[
+						elm$html$Html$Attributes$class('text'),
 						elm$html$Html$Attributes$placeholder('Enter code here'),
-						elm$html$Html$Events$onInput(author$project$Main$InputText)
+						elm$html$Html$Attributes$spellcheck(false),
+						elm$html$Html$Events$onInput(author$project$Editing$InputText)
 					]),
 				_List_Nil)
 			]));
 };
-var author$project$Main$view = function (model) {
+var author$project$Views$wrapContainer = function (rest) {
 	return A2(
 		elm$html$Html$div,
 		_List_fromArray(
 			[
 				elm$html$Html$Attributes$class('container')
 			]),
+		rest);
+};
+var author$project$Editing$view = function (model) {
+	return author$project$Views$wrapContainer(
 		_List_fromArray(
 			[
-				author$project$Main$header,
-				author$project$Main$textArea(model)
+				author$project$Editing$header,
+				author$project$Editing$textArea(model)
 			]));
 };
-var elm$core$Platform$Cmd$batch = _Platform_batch;
-var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
-var elm$core$Platform$Sub$batch = _Platform_batch;
-var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
+var author$project$Looking$ChangeLang = function (a) {
+	return {$: 'ChangeLang', a: a};
+};
+var author$project$Looking$SubmitLang = {$: 'SubmitLang'};
+var elm$html$Html$input = _VirtualDom_node('input');
+var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
+var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
+var author$project$Looking$langInput = function (model) {
+	return A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('language-input')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$input,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$type_('text'),
+						elm$html$Html$Events$onInput(author$project$Looking$ChangeLang),
+						elm$html$Html$Attributes$value(model.lang)
+					]),
+				_List_Nil),
+				A2(
+				elm$html$Html$button,
+				_List_fromArray(
+					[
+						elm$html$Html$Events$onClick(author$project$Looking$SubmitLang)
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Style')
+					]))
+			]));
+};
+var elm$html$Html$code = _VirtualDom_node('code');
+var elm$html$Html$pre = _VirtualDom_node('pre');
+var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
+var author$project$Looking$viewCode = function (model) {
+	return author$project$Views$wrapCodeArea(
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('text')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$pre,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								elm$html$Html$code,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$id('code-view')
+									]),
+								_List_fromArray(
+									[
+										elm$html$Html$text(model.text)
+									]))
+							]))
+					]))
+			]));
+};
+var author$project$Looking$view = function (model) {
+	return author$project$Views$wrapContainer(
+		_List_fromArray(
+			[
+				author$project$Views$wrapHeader(
+				_List_fromArray(
+					[
+						author$project$Looking$langInput(model)
+					])),
+				author$project$Looking$viewCode(model)
+			]));
+};
+var author$project$Main$EditingMsg = function (a) {
+	return {$: 'EditingMsg', a: a};
+};
+var author$project$Main$LookingMsg = function (a) {
+	return {$: 'LookingMsg', a: a};
+};
+var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
+var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
+var author$project$Main$view = function (model) {
+	if (model.$ === 'Editing') {
+		var m = model.a;
+		return A2(
+			elm$html$Html$map,
+			author$project$Main$EditingMsg,
+			author$project$Editing$view(m));
+	} else {
+		var m = model.a;
+		return A2(
+			elm$html$Html$map,
+			author$project$Main$LookingMsg,
+			author$project$Looking$view(m));
+	}
+};
 var elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -5187,25 +5483,15 @@ var elm$url$Url$fromString = function (str) {
 		elm$url$Url$Https,
 		A2(elm$core$String$dropLeft, 8, str)) : elm$core$Maybe$Nothing);
 };
-var elm$browser$Browser$sandbox = function (impl) {
-	return _Browser_element(
-		{
-			init: function (_n0) {
-				return _Utils_Tuple2(impl.init, elm$core$Platform$Cmd$none);
-			},
-			subscriptions: function (_n1) {
-				return elm$core$Platform$Sub$none;
-			},
-			update: F2(
-				function (msg, model) {
-					return _Utils_Tuple2(
-						A2(impl.update, msg, model),
-						elm$core$Platform$Cmd$none);
-				}),
-			view: impl.view
-		});
-};
-var author$project$Main$main = elm$browser$Browser$sandbox(
-	{init: author$project$Main$initialModel, update: author$project$Main$update, view: author$project$Main$view});
+var elm$browser$Browser$element = _Browser_element;
+var author$project$Main$main = elm$browser$Browser$element(
+	{
+		init: function (_n0) {
+			return _Utils_Tuple2(author$project$Main$initialModel, elm$core$Platform$Cmd$none);
+		},
+		subscriptions: author$project$Main$subscriptions,
+		update: author$project$Main$update,
+		view: author$project$Main$view
+	});
 _Platform_export({'Main':{'init':author$project$Main$main(
 	elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));

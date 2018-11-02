@@ -1,62 +1,10 @@
 module Main exposing (main)
 
 import Browser
-import Html as H exposing (Html, form)
+import Editing
+import Html as H exposing (Html, form, map)
 import Html.Attributes as H
 import Html.Events as H
-
-
-type alias Model =
-    { text : String
-    }
-
-
-initialModel : Model
-initialModel =
-    { text = "" }
-
-
-type Msg
-    = InputText String
-
-
-update : Msg -> Model -> Model
-update msg model =
-    case msg of
-        InputText txt ->
-            { model | text = txt }
-
-
-view : Model -> Html Msg
-view model =
-    H.div [ H.class "container" ]
-        [ header model
-        , textArea model
-        ]
-
-
-header : Model -> Html Msg
-header model =
-    H.div [ H.class "header" ]
-        [ H.div [ H.class "header-title" ]
-            [ H.text "Peer Bin"
-            ]
-        , H.div [ H.class "share" ]
-            [ H.button [] [ H.text "share" ]
-            ]
-        ]
-
-
-textArea : Model -> Html Msg
-textArea model =
-    H.div [ H.class "code-area" ]
-        [ H.textarea
-            [ H.placeholder "Enter code here"
-            , H.spellcheck False
-            , H.onInput InputText
-            ]
-            []
-        ]
 
 
 main : Program () Model Msg
@@ -66,3 +14,42 @@ main =
         , view = view
         , update = update
         }
+
+
+
+{- Model -}
+
+
+type Model
+    = Editing Editing.Model
+
+
+initialModel : Model
+initialModel =
+    Editing Editing.initialModel
+
+
+
+{- Update -}
+
+
+type Msg
+    = EditingMsg Editing.Msg
+
+
+update : Msg -> Model -> Model
+update msg model =
+    case ( msg, model ) of
+        ( EditingMsg msg1, Editing model1 ) ->
+            Editing <| Editing.update msg1 model1
+
+
+
+{- View -}
+
+
+view : Model -> Html Msg
+view model =
+    case model of
+        Editing m ->
+            map EditingMsg <| Editing.view m

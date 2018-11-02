@@ -9,6 +9,7 @@ module Editing exposing
 import Html as H exposing (Html)
 import Html.Attributes as H
 import Html.Events as H
+import Views
 
 
 
@@ -39,6 +40,7 @@ update msg model =
     case msg of
         InputText txt ->
             { model | text = txt }
+
         -- This is handled by the parent component
         Share ->
             model
@@ -50,20 +52,17 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    H.div [ H.class "container" ]
-        [ header model
+    Views.wrapContainer
+        [ header
         , textArea model
         ]
 
 
-header : Model -> Html Msg
-header model =
-    H.div [ H.class "header" ]
-        [ H.div [ H.class "header-title" ]
-            [ H.text "Peer Bin"
-            ]
-        , H.div [ H.class "share" ]
-            [ H.button [ H.onClick Share ] 
+header : Html Msg
+header =
+    Views.wrapHeader <|
+        [ H.div [ H.class "share" ]
+            [ H.button [ H.onClick Share ]
                 [ H.text "share"
                 ]
             ]
@@ -72,9 +71,10 @@ header model =
 
 textArea : Model -> Html Msg
 textArea model =
-    H.div [ H.class "code-area" ]
+    Views.wrapCodeArea <|
         [ H.textarea
-            [ H.placeholder "Enter code here"
+            [ H.class "text"
+            , H.placeholder "Enter code here"
             , H.spellcheck False
             , H.onInput InputText
             ]

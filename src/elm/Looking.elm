@@ -9,6 +9,7 @@ module Looking exposing
 import Html as H exposing (Html)
 import Html.Attributes as H
 import Html.Events as H
+import Views
 
 
 
@@ -44,6 +45,16 @@ update NOP model =
 
 view : Model -> Html Msg
 view model =
-    H.div []
-        [ H.text model.text
+    Views.wrapContainer
+        [ Views.wrapHeader []
+        , viewCode model
+        ]
+
+
+viewCode : Model -> Html Msg
+viewCode model =
+    Views.wrapCodeArea
+        [ H.div [ H.class "text" ]
+            [ H.text model.text
+            ]
         ]

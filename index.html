@@ -16,9 +16,12 @@
     node: document.getElementById('elm')
   });
 
-  app.ports.client.subscribe(function(str) {
-    if (str === "highlight") {
-      setTimeout(hljs.initHighlighting, 10);
+  app.ports.client.subscribe(function(data) {
+    if (data.highlight) {
+      var code = document.getElementById('code-view');
+      code.className = data.highlight.style;
+      code.innerHTML = data.highlight.text;
+      hljs.highlightBlock(code);
     }
   });
   </script>

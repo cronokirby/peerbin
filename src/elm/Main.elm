@@ -23,7 +23,21 @@ main =
 {- Ports -}
 
 
-port client : String -> Cmd msg
+port client : E.Value -> Cmd msg
+
+
+makeHighlight : String -> String -> E.Value
+makeHighlight style text =
+    let
+        highlight =
+            E.object
+                [ ( "style", E.string style )
+                , ( "text", E.string text )
+                ]
+    in
+    E.object
+        [ ( "highlight", highlight )
+        ]
 
 
 
@@ -54,14 +68,21 @@ update msg model =
     case ( msg, model ) of
         ( EditingMsg Editing.Share, Editing mod ) ->
             ( Looking (Looking.initialModel mod.text)
-            , client "highlight"
+            , Cmd.none
             )
 
         ( EditingMsg msg1, Editing model1 ) ->
             ( Editing <| Editing.update msg1 model1, Cmd.none )
 
         ( LookingMsg msg1, Looking model1 ) ->
-            ( Looking <| Looking.update msg1 model1, Cmd.none )
+            case Looking.update msg1 model1 of
+                ( newModel, Looking.RedoHighlighting style txt ) ->
+                    ( Looking newModel
+                    , client <| makeHighlight style txt
+                    )
+
+                ( newModel, _ ) ->
+                    ( Looking newModel, Cmd.none )
 
         ( _, _ ) ->
             ( model, Cmd.none )

@@ -10,6 +10,7 @@ module Looking exposing
 import Html as H exposing (Html)
 import Html.Attributes as H
 import Html.Events as H
+import FeatherIcons as Icons
 import Views
 
 
@@ -68,20 +69,21 @@ view model =
 
 langInput : Model -> Html Msg
 langInput model =
-    H.div [ H.class "language-input" ]
-        [ H.input
-            [ H.type_ "text"
-            , H.onInput ChangeLang
-            , H.value model.lang
+    H.div [ H.class "language-container" ]
+        [ H.div [ H.class "language-input"]
+            [ H.input
+                [ H.type_ "text"
+                , H.onInput ChangeLang
+                , H.value model.lang
+                ]
+                []
             ]
-            []
-        , H.button
-            [ H.onClick SubmitLang
-            ]
-            [ H.text "Style"
+        , H.div [ H.class "language-submit" ]
+            [ H.button [ H.onClick SubmitLang ]
+                [ Icons.edit |> Icons.toHtml []
+                ]
             ]
         ]
-
 
 viewCode : Model -> Html Msg
 viewCode model =

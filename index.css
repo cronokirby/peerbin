@@ -61,16 +61,19 @@ body {
 }
 
 
-.header .language-input {
+.header .language-container {
     margin-left: auto;
     margin-right: 10px;
+    display: flex;
+    flex-direction: row;
 }
 
 .header .language-input input {
     width: 100px;
+    margin-top: 22px;
 }
 
-.header .language-input button {
+.header .language-submit button {
     background-color: rgb(75, 201, 173);
     color: white;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -82,14 +85,14 @@ body {
     outline: 0;
 
     height: 100%;
-    width: 60px;
+    width: 50px;
 }
 
-.header .language-input button:hover {
+.header .language-submit button:hover {
     box-shadow: 0 0px 9px 0 rgb(61, 61, 75);
 }
 
-.header .language-input button:active {
+.header .langage-submit button:active {
     box-shadow: inset 0 0px 9px 0 rgb(61, 61, 75);
 }
 

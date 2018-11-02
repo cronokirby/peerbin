@@ -9,6 +9,7 @@ module Editing exposing
 import Html as H exposing (Html)
 import Html.Attributes as H
 import Html.Events as H
+import FeatherIcons as Icons
 import Views
 
 
@@ -63,7 +64,7 @@ header =
     Views.wrapHeader <|
         [ H.div [ H.class "share" ]
             [ H.button [ H.onClick Share ]
-                [ H.text "share"
+                [ Icons.upload |> Icons.toHtml []
                 ]
             ]
         ]

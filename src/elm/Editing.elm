@@ -1,12 +1,12 @@
 module Editing exposing
     ( Model
-    , Msg
+    , Msg(..)
     , initialModel
     , update
     , view
     )
 
-import Html as H exposing (Html, form)
+import Html as H exposing (Html)
 import Html.Attributes as H
 import Html.Events as H
 
@@ -31,6 +31,7 @@ initialModel =
 
 type Msg
     = InputText String
+    | Share
 
 
 update : Msg -> Model -> Model
@@ -38,6 +39,9 @@ update msg model =
     case msg of
         InputText txt ->
             { model | text = txt }
+        -- This is handled by the parent component
+        Share ->
+            model
 
 
 
@@ -59,7 +63,9 @@ header model =
             [ H.text "Peer Bin"
             ]
         , H.div [ H.class "share" ]
-            [ H.button [] [ H.text "share" ]
+            [ H.button [ H.onClick Share ] 
+                [ H.text "share"
+                ]
             ]
         ]
 

@@ -55,6 +55,10 @@ viewCode : Model -> Html Msg
 viewCode model =
     Views.wrapCodeArea
         [ H.div [ H.class "text" ]
-            [ H.text model.text
+            [ H.pre []
+                [ H.code [ H.class "python" ]
+                    [ H.text model.text
+                    ]
+                ]
             ]
         ]

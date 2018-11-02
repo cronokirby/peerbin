@@ -1,20 +1,29 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Editing
-import Looking
 import Html as H exposing (Html, form, map)
 import Html.Attributes as H
 import Html.Events as H
+import Json.Encode as E
+import Looking
 
 
 main : Program () Model Msg
 main =
-    Browser.sandbox
-        { init = initialModel
+    Browser.element
+        { init = \_ -> ( initialModel, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = subscriptions
         }
+
+
+
+{- Ports -}
+
+
+port client : String -> Cmd msg
 
 
 
@@ -40,17 +49,31 @@ type Msg
     | LookingMsg Looking.Msg
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( EditingMsg Editing.Share, Editing mod) ->
-            Looking (Looking.initialModel mod.text)
+        ( EditingMsg Editing.Share, Editing mod ) ->
+            ( Looking (Looking.initialModel mod.text)
+            , client "highlight"
+            )
+
         ( EditingMsg msg1, Editing model1 ) ->
-            Editing <| Editing.update msg1 model1
+            ( Editing <| Editing.update msg1 model1, Cmd.none )
+
         ( LookingMsg msg1, Looking model1 ) ->
-            Looking <| Looking.update msg1 model1
-        ( _, _) ->
-            model
+            ( Looking <| Looking.update msg1 model1, Cmd.none )
+
+        ( _, _ ) ->
+            ( model, Cmd.none )
+
+
+
+{- Subscriptions -}
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
 
 
 
@@ -62,5 +85,6 @@ view model =
     case model of
         Editing m ->
             map EditingMsg <| Editing.view m
+
         Looking m ->
             map LookingMsg <| Looking.view m

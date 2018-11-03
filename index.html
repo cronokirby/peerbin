@@ -25,10 +25,8 @@
       code.innerHTML = data.highlight.text;
       hljs.highlightBlock(code);
     }
-    if (data.seed) {
-      var file = new File([data.seed], 'unnamed.txt');
-      client.seed(file, function (torrent) {
-        var reader = new FileReader();
+    const torrentCallback = function(torrent) {
+      var reader = new FileReader();
         reader.addEventListener("loadend", function() {
           var id = torrent.infoHash;
           var text = reader.result;
@@ -38,7 +36,13 @@
           if (err) throw err;
           reader.readAsText(blob);
         });
-      });
+    }
+    if (data.seed) {
+      var file = new File([data.seed], 'unnamed.txt');
+      client.seed(file, torrentCallback);
+    }
+    if (data.fetch) {
+      client.add(data.fetch, torrentCallback);
     }
   });
   </script>

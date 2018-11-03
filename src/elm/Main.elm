@@ -35,9 +35,14 @@ port outClient : E.Value -> Cmd msg
 port inClient : (D.Value -> msg) -> Sub msg
 
 
+type alias Id =
+    String
+
+
 type OutInfo
     = Highlight String String
     | Seed String
+    | Fetch Id
 
 
 sendOut : OutInfo -> Cmd msg
@@ -58,9 +63,9 @@ sendOut info =
             E.object [ ( "seed", E.string txt ) ]
                 |> outClient
 
-
-type alias Id =
-    String
+        Fetch id ->
+            E.object [ ( "fetch", E.string id ) ]
+                |> outClient
 
 
 type Info
@@ -101,15 +106,32 @@ routeModel url =
         Paste id ->
             Looking id <| Looking.initialModel "Loading"
 
-diffrouteModel : Url -> InnerModel -> InnerModel
+
+routeCmd : Url -> Cmd msg
+routeCmd url =
+    case parseRoute url of
+        NotFound ->
+            Cmd.none
+
+        NewPaste ->
+            Cmd.none
+
+        Paste id ->
+            sendOut (Fetch id)
+
+
+diffrouteModel : Url -> InnerModel -> ( InnerModel, Cmd msg )
 diffrouteModel url model =
-    case (parseRoute url, model) of
-        (Paste id1, Looking id2 lmodel) ->
-            if id1 == id2 
-                then Looking id2 lmodel 
-                else routeModel url
-        (_, _) ->
-            routeModel url
+    case ( parseRoute url, model ) of
+        ( Paste id1, Looking id2 lmodel ) ->
+            if id1 == id2 then
+                ( Looking id2 lmodel, Cmd.none )
+
+            else
+                ( routeModel url, routeCmd url )
+
+        ( _, _ ) ->
+            ( routeModel url, routeCmd url )
 
 
 type alias Model =
@@ -120,7 +142,7 @@ type alias Model =
 
 init : flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( { key = key, inner = routeModel url }, Cmd.none )
+    ( { key = key, inner = routeModel url }, routeCmd url )
 
 
 
@@ -150,7 +172,11 @@ update msg model =
             ( { model | inner = newInner }, cmd )
 
         ( UrlChange url, _ ) ->
-            ( { model | inner = diffrouteModel url model.inner }, Cmd.none )
+            let
+                ( inner, cmd ) =
+                    diffrouteModel url model.inner
+            in
+            ( { model | inner = inner }, cmd )
 
         ( Incoming (TextArrived id txt), _ ) ->
             ( { model | inner = Looking id <| Looking.initialModel txt }

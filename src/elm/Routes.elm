@@ -24,13 +24,17 @@ route =
 
 
 parseRoute : Url -> Route
-parseRoute =
-    P.parse (P.fragment identity)
-        >> Maybe.andThen identity
-        >> Maybe.map (\s -> "https://a.com" ++ s)
-        >> Maybe.andThen Url.fromString
-        >> Maybe.andThen (P.parse route)
-        >> Maybe.withDefault NotFound
+parseRoute url =
+    let
+        noPath =
+            { url | path = "/" }
+    in
+    P.parse (P.fragment identity) noPath
+        |> Maybe.andThen identity
+        |> Maybe.map (\s -> "https://a.com" ++ s)
+        |> Maybe.andThen Url.fromString
+        |> Maybe.andThen (P.parse route)
+        |> Maybe.withDefault NotFound
 
 
 routeUrl : Route -> String

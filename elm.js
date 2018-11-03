@@ -5084,11 +5084,6 @@ var author$project$Routes$route = elm$url$Url$Parser$oneOf(
 				elm$url$Url$Parser$string)),
 			A2(elm$url$Url$Parser$map, author$project$Routes$NewPaste, elm$url$Url$Parser$top)
 		]));
-var elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
 var elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
 		if (maybeValue.$ === 'Just') {
@@ -5897,27 +5892,32 @@ var elm$url$Url$Parser$parse = F2(
 					url.fragment,
 					elm$core$Basics$identity)));
 	});
-var author$project$Routes$parseRoute = A2(
-	elm$core$Basics$composeR,
-	elm$url$Url$Parser$parse(
-		elm$url$Url$Parser$fragment(elm$core$Basics$identity)),
-	A2(
-		elm$core$Basics$composeR,
-		elm$core$Maybe$andThen(elm$core$Basics$identity),
+var author$project$Routes$parseRoute = function (url) {
+	var noPath = _Utils_update(
+		url,
+		{path: '/'});
+	return A2(
+		elm$core$Maybe$withDefault,
+		author$project$Routes$NotFound,
 		A2(
-			elm$core$Basics$composeR,
-			elm$core$Maybe$map(
-				function (s) {
-					return 'https://a.com' + s;
-				}),
+			elm$core$Maybe$andThen,
+			elm$url$Url$Parser$parse(author$project$Routes$route),
 			A2(
-				elm$core$Basics$composeR,
-				elm$core$Maybe$andThen(elm$url$Url$fromString),
+				elm$core$Maybe$andThen,
+				elm$url$Url$fromString,
 				A2(
-					elm$core$Basics$composeR,
-					elm$core$Maybe$andThen(
-						elm$url$Url$Parser$parse(author$project$Routes$route)),
-					elm$core$Maybe$withDefault(author$project$Routes$NotFound))))));
+					elm$core$Maybe$map,
+					function (s) {
+						return 'https://a.com' + s;
+					},
+					A2(
+						elm$core$Maybe$andThen,
+						elm$core$Basics$identity,
+						A2(
+							elm$url$Url$Parser$parse,
+							elm$url$Url$Parser$fragment(elm$core$Basics$identity),
+							noPath))))));
+};
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Main$routeCmd = function (url) {
@@ -5989,6 +5989,11 @@ var author$project$Main$infoDecoder = A2(
 		author$project$Main$TextArrived,
 		A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$string),
 		A2(elm$json$Json$Decode$field, 'text', elm$json$Json$Decode$string)));
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
 var elm$core$Result$toMaybe = function (result) {
 	if (result.$ === 'Ok') {
 		var v = result.a;
@@ -6608,7 +6613,7 @@ var author$project$Editing$textArea = function (model) {
 				_List_fromArray(
 					[
 						elm$html$Html$Attributes$class('text'),
-						elm$html$Html$Attributes$placeholder('Enter code here'),
+						elm$html$Html$Attributes$placeholder('Enter your code here'),
 						elm$html$Html$Attributes$spellcheck(false),
 						elm$html$Html$Events$onInput(author$project$Editing$InputText)
 					]),

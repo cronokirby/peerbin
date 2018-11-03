@@ -9,7 +9,7 @@ import Html.Events as H
 import Json.Decode as D
 import Json.Encode as E
 import Looking
-import Routes exposing (Route(..), parseRoute)
+import Routes exposing (Route(..), parseRoute, routeUrl)
 import Url exposing (Url)
 
 
@@ -86,20 +86,30 @@ decodeInfo =
 
 type InnerModel
     = Editing Editing.Model
-    | Looking Looking.Model
+    | Looking Id Looking.Model
 
 
 routeModel : Url -> InnerModel
 routeModel url =
     case parseRoute url of
         NotFound ->
-            Looking <| Looking.initialModel "Not Found"
+            Looking "" <| Looking.initialModel "Not Found"
 
         NewPaste ->
             Editing <| Editing.initialModel
 
         Paste id ->
-            Looking <| Looking.initialModel id
+            Looking id <| Looking.initialModel "Loading"
+
+diffrouteModel : Url -> InnerModel -> InnerModel
+diffrouteModel url model =
+    case (parseRoute url, model) of
+        (Paste id1, Looking id2 lmodel) ->
+            if id1 == id2 
+                then Looking id2 lmodel 
+                else routeModel url
+        (_, _) ->
+            routeModel url
 
 
 type alias Model =
@@ -140,11 +150,11 @@ update msg model =
             ( { model | inner = newInner }, cmd )
 
         ( UrlChange url, _ ) ->
-            ( { model | inner = routeModel url }, Cmd.none )
+            ( { model | inner = diffrouteModel url model.inner }, Cmd.none )
 
         ( Incoming (TextArrived id txt), _ ) ->
-            ( { model | inner = Looking <| Looking.initialModel txt }
-            , Cmd.none
+            ( { model | inner = Looking id <| Looking.initialModel txt }
+            , Nav.pushUrl model.key <| routeUrl (Paste id)
             )
 
         ( NoOP, _ ) ->
@@ -160,17 +170,17 @@ updateInner msg model =
         ( EditingMsg msg1, Editing model1 ) ->
             ( Editing <| Editing.update msg1 model1, Cmd.none )
 
-        ( LookingMsg msg1, Looking model1 ) ->
+        ( LookingMsg msg1, Looking id model1 ) ->
             case Looking.update msg1 model1 of
                 ( newModel, Looking.RedoHighlighting style txt ) ->
-                    ( Looking newModel
+                    ( Looking id newModel
                     , sendOut (Highlight style txt)
                     )
 
                 ( newModel, _ ) ->
-                    ( Looking newModel, Cmd.none )
+                    ( Looking id newModel, Cmd.none )
 
-        ( EditingMsg _, Looking _ ) ->
+        ( EditingMsg _, Looking _ _ ) ->
             ( model, Cmd.none )
 
         ( LookingMsg _, Editing _ ) ->
@@ -208,5 +218,5 @@ viewInner model =
         Editing m ->
             map EditingMsg <| Editing.view m
 
-        Looking m ->
+        Looking _ m ->
             map LookingMsg <| Looking.view m

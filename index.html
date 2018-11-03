@@ -7,6 +7,7 @@
   <link rel="stylesheet" type="text/css" href="highlight.css">
   <script src="elm.js"></script>
   <script src="highlight.js"></script>
+  <script src="webtorrent.js"></script>
 </head>
 
 <body>
@@ -15,6 +16,7 @@
   var app = Elm.Main.init({
     node: document.getElementById('elm')
   });
+  var client = new WebTorrent();
 
   app.ports.outClient.subscribe(function(data) {
     if (data.highlight) {
@@ -24,7 +26,19 @@
       hljs.highlightBlock(code);
     }
     if (data.seed) {
-      app.ports.inClient.send({textArrived: {id: '1337', text: data.seed}});
+      var file = new File([data.seed], 'unnamed.txt');
+      client.seed(file, function (torrent) {
+        var reader = new FileReader();
+        reader.addEventListener("loadend", function() {
+          var id = torrent.infoHash;
+          var text = reader.result;
+          app.ports.inClient.send({textArrived: {id: id, text: text}});
+        });
+        torrent.files[0].getBlob(function(err, blob) {
+          if (err) throw err;
+          reader.readAsText(blob);
+        });
+      });
     }
   });
   </script>

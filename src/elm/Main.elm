@@ -6,6 +6,7 @@ import Editing
 import Html as H exposing (Html, form, map)
 import Html.Attributes as H
 import Html.Events as H
+import Json.Decode as D
 import Json.Encode as E
 import Looking
 import Routes exposing (Route(..), parseRoute)
@@ -28,21 +29,55 @@ main =
 {- Ports -}
 
 
-port client : E.Value -> Cmd msg
+port outClient : E.Value -> Cmd msg
 
 
-makeHighlight : String -> String -> E.Value
-makeHighlight style text =
-    let
-        highlight =
-            E.object
-                [ ( "style", E.string style )
-                , ( "text", E.string text )
-                ]
-    in
-    E.object
-        [ ( "highlight", highlight )
-        ]
+port inClient : (D.Value -> msg) -> Sub msg
+
+
+type OutInfo
+    = Highlight String String
+    | Seed String
+
+
+sendOut : OutInfo -> Cmd msg
+sendOut info =
+    case info of
+        Highlight style text ->
+            let
+                highlight =
+                    E.object
+                        [ ( "style", E.string style )
+                        , ( "text", E.string text )
+                        ]
+            in
+            E.object [ ( "highlight", highlight ) ]
+                |> outClient
+
+        Seed txt ->
+            E.object [ ( "seed", E.string txt ) ]
+                |> outClient
+
+
+type alias Id =
+    String
+
+
+type Info
+    = TextArrived Id String
+
+
+infoDecoder : D.Decoder Info
+infoDecoder =
+    D.field "textArrived" <|
+        D.map2 TextArrived
+            (D.field "id" D.string)
+            (D.field "text" D.string)
+
+
+decodeInfo : D.Value -> Maybe Info
+decodeInfo =
+    D.decodeValue infoDecoder >> Result.toMaybe
 
 
 
@@ -90,6 +125,7 @@ type InnerMsg
 type Msg
     = InnerMsg InnerMsg
     | UrlChange Url
+    | Incoming Info
     | NoOP
 
 
@@ -106,6 +142,11 @@ update msg model =
         ( UrlChange url, _ ) ->
             ( { model | inner = routeModel url }, Cmd.none )
 
+        ( Incoming (TextArrived id txt), _ ) ->
+            ( { model | inner = Looking <| Looking.initialModel txt }
+            , Cmd.none
+            )
+
         ( NoOP, _ ) ->
             ( model, Cmd.none )
 
@@ -114,9 +155,7 @@ updateInner : InnerMsg -> InnerModel -> ( InnerModel, Cmd Msg )
 updateInner msg model =
     case ( msg, model ) of
         ( EditingMsg Editing.Share, Editing mod ) ->
-            ( Looking <| Looking.initialModel mod.text
-            , Cmd.none
-            )
+            ( model, sendOut (Seed mod.text) )
 
         ( EditingMsg msg1, Editing model1 ) ->
             ( Editing <| Editing.update msg1 model1, Cmd.none )
@@ -125,7 +164,7 @@ updateInner msg model =
             case Looking.update msg1 model1 of
                 ( newModel, Looking.RedoHighlighting style txt ) ->
                     ( Looking newModel
-                    , client <| makeHighlight style txt
+                    , sendOut (Highlight style txt)
                     )
 
                 ( newModel, _ ) ->
@@ -144,7 +183,14 @@ updateInner msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    inClient <|
+        \val ->
+            case decodeInfo val of
+                Nothing ->
+                    NoOP
+
+                Just info ->
+                    Incoming info
 
 
 

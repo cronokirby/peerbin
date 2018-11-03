@@ -16,12 +16,15 @@
     node: document.getElementById('elm')
   });
 
-  app.ports.client.subscribe(function(data) {
+  app.ports.outClient.subscribe(function(data) {
     if (data.highlight) {
       var code = document.getElementById('code-view');
       code.className = data.highlight.style;
       code.innerHTML = data.highlight.text;
       hljs.highlightBlock(code);
+    }
+    if (data.seed) {
+      app.ports.inClient.send({textArrived: {id: '1337', text: data.seed}});
     }
   });
   </script>

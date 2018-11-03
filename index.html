@@ -17,6 +17,22 @@
     node: document.getElementById('elm')
   });
   var client = new WebTorrent();
+  const onTorrent = function(torrent) {
+    console.log('Torrent ' + torrent.infoHash + ' has finished');
+    var reader = new FileReader();
+    reader.addEventListener("loadend", function() {
+      var id = torrent.infoHash;
+      var text = reader.result;
+      app.ports.inClient.send({textArrived: {id: id, text: text}});
+    });
+    torrent.files[0].getBlob(function(err, blob) {
+      if (err) throw err;
+      reader.readAsText(blob);
+    });
+  };
+  client.on('error', function (err) {
+    console.error("ERROR: " + err.message);
+  });
 
   app.ports.outClient.subscribe(function(data) {
     if (data.highlight) {
@@ -25,24 +41,17 @@
       code.innerHTML = data.highlight.text;
       hljs.highlightBlock(code);
     }
-    const torrentCallback = function(torrent) {
-      var reader = new FileReader();
-        reader.addEventListener("loadend", function() {
-          var id = torrent.infoHash;
-          var text = reader.result;
-          app.ports.inClient.send({textArrived: {id: id, text: text}});
-        });
-        torrent.files[0].getBlob(function(err, blob) {
-          if (err) throw err;
-          reader.readAsText(blob);
-        });
-    }
     if (data.seed) {
+      console.log('Seeding');
       var file = new File([data.seed], 'unnamed.txt');
-      client.seed(file, torrentCallback);
+      client.seed(file, onTorrent);
     }
     if (data.fetch) {
-      client.add(data.fetch, torrentCallback);
+      console.log('Fetching', data.fetch);
+      var torrent = client.add(data.fetch, onTorrent);
+      torrent.on('warning', function (w) {
+        console.log(w);
+      });
     }
   });
   </script>

@@ -20,7 +20,7 @@ main =
         , update = update
         , subscriptions = subscriptions
         , onUrlRequest = \_ -> NoOP
-        , onUrlChange = \_ -> NoOP
+        , onUrlChange = UrlChange
         }
 
 
@@ -54,6 +54,19 @@ type InnerModel
     | Looking Looking.Model
 
 
+routeModel : Url -> InnerModel
+routeModel url =
+    case parseRoute url of
+        NotFound ->
+            Looking <| Looking.initialModel "Not Found"
+
+        NewPaste ->
+            Editing <| Editing.initialModel
+
+        Paste id ->
+            Looking <| Looking.initialModel id
+
+
 type alias Model =
     { key : Nav.Key
     , inner : InnerModel
@@ -62,19 +75,7 @@ type alias Model =
 
 init : flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    let
-        inner =
-            case parseRoute url of
-                NotFound ->
-                    Looking <| Looking.initialModel "Not Found"
-
-                NewPaste ->
-                    Editing Editing.initialModel
-
-                Paste id ->
-                    Looking <| Looking.initialModel id
-    in
-    ( { key = key, inner = inner }, Cmd.none )
+    ( { key = key, inner = routeModel url }, Cmd.none )
 
 
 
@@ -88,6 +89,7 @@ type InnerMsg
 
 type Msg
     = InnerMsg InnerMsg
+    | UrlChange Url
     | NoOP
 
 
@@ -101,7 +103,10 @@ update msg model =
             in
             ( { model | inner = newInner }, cmd )
 
-        ( _, _ ) ->
+        ( UrlChange url, _ ) ->
+            ( { model | inner = routeModel url }, Cmd.none )
+
+        ( NoOP, _ ) ->
             ( model, Cmd.none )
 
 

@@ -13,6 +13,8 @@
 <body>
   <div id="elm"></div>
   <script>
+  const trackers = ['wss://tracker.btorrent.xyz', 'wss://tracker.openwebtorrent.com', 'wss://tracker.fastcast.nz']
+  
   var app = Elm.Main.init({
     node: document.getElementById('elm')
   });
@@ -48,10 +50,7 @@
     }
     if (data.fetch) {
       console.log('Fetching', data.fetch);
-      var torrent = client.add(data.fetch, onTorrent);
-      torrent.on('warning', function (w) {
-        console.log(w);
-      });
+      var torrent = client.add(data.fetch, {announce: trackers}, onTorrent);
     }
   });
   </script>

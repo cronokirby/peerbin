@@ -75,7 +75,7 @@ textArea model =
     Views.wrapCodeArea <|
         [ H.textarea
             [ H.class "text"
-            , H.placeholder "Enter code here"
+            , H.placeholder "Enter your code here"
             , H.spellcheck False
             , H.onInput InputText
             ]

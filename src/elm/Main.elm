@@ -111,8 +111,8 @@ noPeersError id =
         desc =
             "The paste '"
                 ++ id
-                ++ "' doesn't seem to have any peers."
-                ++ "It might still be seeded, but if it isn't"
+                ++ "' doesn't seem to have anyone seeding it. "
+                ++ "Some seeder may appear soon, otherwise"
                 ++ " it can no longer be downloaded :("
     in
     ErrorModel title desc

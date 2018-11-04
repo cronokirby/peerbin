@@ -58,7 +58,12 @@
           torrent.on('done', onTorrentDone);
         }
       } else {
-        client.add(data.fetch, {announce: trackers}, onTorrentDone);
+        var torrent = client.add(
+          data.fetch, {announce: trackers}, onTorrentDone
+        );
+        torrent.on('noPeers', function(announce) {
+          app.ports.inClient.send({noPeers: {id: data.fetch}});
+        });
       }
     }
   });

@@ -71,14 +71,20 @@ sendOut info =
 
 type Info
     = TextArrived Id String
+    | NoPeers Id
 
 
 infoDecoder : D.Decoder Info
 infoDecoder =
-    D.field "textArrived" <|
-        D.map2 TextArrived
-            (D.field "id" D.string)
-            (D.field "text" D.string)
+    D.oneOf
+        [ D.field "textArrived" <|
+            D.map2 TextArrived
+                (D.field "id" D.string)
+                (D.field "text" D.string)
+        , D.field "noPeers" <|
+            D.map NoPeers
+                (D.field "id" D.string)
+        ]
 
 
 decodeInfo : D.Value -> Maybe Info
@@ -94,6 +100,20 @@ type InnerModel
     = Editing Editing.Model
     | Looking Id Looking.Model
     | ErrorModel String String
+
+
+noPeersError : Id -> InnerModel
+noPeersError id =
+    let
+        title =
+            "No Peers"
+
+        desc =
+            "The paste '"
+                ++ id
+                ++ "' has no one seeding it, so it cannot be downloaded :("
+    in
+    ErrorModel title desc
 
 
 routeModel : Url -> InnerModel
@@ -186,6 +206,9 @@ update msg model =
             ( { model | inner = Looking id <| Looking.initialModel txt }
             , Nav.pushUrl model.key <| routeUrl (Paste id)
             )
+
+        ( Incoming (NoPeers id), _ ) ->
+            ( { model | inner = noPeersError id }, Cmd.none )
 
         ( NoOP, _ ) ->
             ( model, Cmd.none )

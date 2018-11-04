@@ -4311,9 +4311,11 @@ function _Browser_load(url)
 		}
 	}));
 }
-var author$project$Main$NoOP = {$: 'NoOP'};
 var author$project$Main$UrlChange = function (a) {
 	return {$: 'UrlChange', a: a};
+};
+var author$project$Main$UrlRequest = function (a) {
+	return {$: 'UrlRequest', a: a};
 };
 var author$project$Main$Fetch = function (a) {
 	return {$: 'Fetch', a: a};
@@ -5940,6 +5942,10 @@ var author$project$Looking$initialModel = function (txt) {
 var author$project$Main$Editing = function (a) {
 	return {$: 'Editing', a: a};
 };
+var author$project$Main$ErrorModel = F2(
+	function (a, b) {
+		return {$: 'ErrorModel', a: a, b: b};
+	});
 var author$project$Main$Looking = F2(
 	function (a, b) {
 		return {$: 'Looking', a: a, b: b};
@@ -5948,10 +5954,7 @@ var author$project$Main$routeModel = function (url) {
 	var _n0 = author$project$Routes$parseRoute(url);
 	switch (_n0.$) {
 		case 'NotFound':
-			return A2(
-				author$project$Main$Looking,
-				'',
-				author$project$Looking$initialModel('Not Found'));
+			return A2(author$project$Main$ErrorModel, 'Not Found', 'This page doesn\'t seem to exist :(');
 		case 'NewPaste':
 			return author$project$Main$Editing(author$project$Editing$initialModel);
 		default:
@@ -5974,21 +5977,38 @@ var author$project$Main$init = F3(
 var author$project$Main$Incoming = function (a) {
 	return {$: 'Incoming', a: a};
 };
+var author$project$Main$NoOP = {$: 'NoOP'};
+var author$project$Main$NoPeers = function (a) {
+	return {$: 'NoPeers', a: a};
+};
 var author$project$Main$TextArrived = F2(
 	function (a, b) {
 		return {$: 'TextArrived', a: a, b: b};
 	});
 var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$json$Json$Decode$oneOf = _Json_oneOf;
 var elm$json$Json$Decode$string = _Json_decodeString;
-var author$project$Main$infoDecoder = A2(
-	elm$json$Json$Decode$field,
-	'textArrived',
-	A3(
-		elm$json$Json$Decode$map2,
-		author$project$Main$TextArrived,
-		A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$string),
-		A2(elm$json$Json$Decode$field, 'text', elm$json$Json$Decode$string)));
+var author$project$Main$infoDecoder = elm$json$Json$Decode$oneOf(
+	_List_fromArray(
+		[
+			A2(
+			elm$json$Json$Decode$field,
+			'textArrived',
+			A3(
+				elm$json$Json$Decode$map2,
+				author$project$Main$TextArrived,
+				A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$string),
+				A2(elm$json$Json$Decode$field, 'text', elm$json$Json$Decode$string))),
+			A2(
+			elm$json$Json$Decode$field,
+			'noPeers',
+			A2(
+				elm$json$Json$Decode$map,
+				author$project$Main$NoPeers,
+				A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$string)))
+		]));
 var elm$core$Basics$composeR = F3(
 	function (f, g, x) {
 		return g(
@@ -6042,6 +6062,11 @@ var author$project$Main$diffrouteModel = F2(
 				author$project$Main$routeCmd(url));
 		}
 	});
+var author$project$Main$noPeersError = function (id) {
+	var title = 'No Peers';
+	var desc = 'The paste \'' + (id + '\' has no one seeding it, so it cannot be downloaded :(');
+	return A2(author$project$Main$ErrorModel, title, desc);
+};
 var author$project$Editing$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'InputText') {
@@ -6083,52 +6108,56 @@ var author$project$Main$Seed = function (a) {
 var author$project$Main$updateInner = F2(
 	function (msg, model) {
 		var _n0 = _Utils_Tuple2(msg, model);
-		if (_n0.a.$ === 'EditingMsg') {
-			if (_n0.b.$ === 'Editing') {
-				if (_n0.a.a.$ === 'Share') {
-					var _n1 = _n0.a.a;
-					var mod = _n0.b.a;
-					return _Utils_Tuple2(
-						model,
-						author$project$Main$sendOut(
-							author$project$Main$Seed(mod.text)));
-				} else {
+		switch (_n0.b.$) {
+			case 'Looking':
+				if (_n0.a.$ === 'LookingMsg') {
 					var msg1 = _n0.a.a;
-					var model1 = _n0.b.a;
-					return _Utils_Tuple2(
-						author$project$Main$Editing(
-							A2(author$project$Editing$update, msg1, model1)),
-						elm$core$Platform$Cmd$none);
-				}
-			} else {
-				var _n5 = _n0.b;
-				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
-			}
-		} else {
-			if (_n0.b.$ === 'Looking') {
-				var msg1 = _n0.a.a;
-				var _n2 = _n0.b;
-				var id = _n2.a;
-				var model1 = _n2.b;
-				var _n3 = A2(author$project$Looking$update, msg1, model1);
-				if (_n3.b.$ === 'RedoHighlighting') {
-					var newModel = _n3.a;
-					var _n4 = _n3.b;
-					var style = _n4.a;
-					var txt = _n4.b;
-					return _Utils_Tuple2(
-						A2(author$project$Main$Looking, id, newModel),
-						author$project$Main$sendOut(
-							A2(author$project$Main$Highlight, style, txt)));
+					var _n2 = _n0.b;
+					var id = _n2.a;
+					var model1 = _n2.b;
+					var _n3 = A2(author$project$Looking$update, msg1, model1);
+					if (_n3.b.$ === 'RedoHighlighting') {
+						var newModel = _n3.a;
+						var _n4 = _n3.b;
+						var style = _n4.a;
+						var txt = _n4.b;
+						return _Utils_Tuple2(
+							A2(author$project$Main$Looking, id, newModel),
+							author$project$Main$sendOut(
+								A2(author$project$Main$Highlight, style, txt)));
+					} else {
+						var newModel = _n3.a;
+						return _Utils_Tuple2(
+							A2(author$project$Main$Looking, id, newModel),
+							elm$core$Platform$Cmd$none);
+					}
 				} else {
-					var newModel = _n3.a;
-					return _Utils_Tuple2(
-						A2(author$project$Main$Looking, id, newModel),
-						elm$core$Platform$Cmd$none);
+					var _n5 = _n0.b;
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				}
-			} else {
+			case 'Editing':
+				if (_n0.a.$ === 'EditingMsg') {
+					if (_n0.a.a.$ === 'Share') {
+						var _n1 = _n0.a.a;
+						var mod = _n0.b.a;
+						return _Utils_Tuple2(
+							model,
+							author$project$Main$sendOut(
+								author$project$Main$Seed(mod.text)));
+					} else {
+						var msg1 = _n0.a.a;
+						var model1 = _n0.b.a;
+						return _Utils_Tuple2(
+							author$project$Main$Editing(
+								A2(author$project$Editing$update, msg1, model1)),
+							elm$core$Platform$Cmd$none);
+					}
+				} else {
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				}
+			default:
+				var _n6 = _n0.b;
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
-			}
 		}
 	});
 var elm$url$Url$Builder$toQueryPair = function (_n0) {
@@ -6268,7 +6297,6 @@ var elm$core$Task$perform = F2(
 			elm$core$Task$Perform(
 				A2(elm$core$Task$map, toMessage, task)));
 	});
-var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
@@ -6282,7 +6310,52 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 			return 3;
 	}
 };
+var elm$browser$Browser$Navigation$load = _Browser_load;
 var elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
+var elm$url$Url$addPort = F2(
+	function (maybePort, starter) {
+		if (maybePort.$ === 'Nothing') {
+			return starter;
+		} else {
+			var port_ = maybePort.a;
+			return starter + (':' + elm$core$String$fromInt(port_));
+		}
+	});
+var elm$url$Url$addPrefixed = F3(
+	function (prefix, maybeSegment, starter) {
+		if (maybeSegment.$ === 'Nothing') {
+			return starter;
+		} else {
+			var segment = maybeSegment.a;
+			return _Utils_ap(
+				starter,
+				_Utils_ap(prefix, segment));
+		}
+	});
+var elm$url$Url$toString = function (url) {
+	var http = function () {
+		var _n0 = url.protocol;
+		if (_n0.$ === 'Http') {
+			return 'http://';
+		} else {
+			return 'https://';
+		}
+	}();
+	return A3(
+		elm$url$Url$addPrefixed,
+		'#',
+		url.fragment,
+		A3(
+			elm$url$Url$addPrefixed,
+			'?',
+			url.query,
+			_Utils_ap(
+				A2(
+					elm$url$Url$addPort,
+					url.port_,
+					_Utils_ap(http, url.host)),
+				url.path)));
+};
 var author$project$Main$update = F2(
 	function (msg, model) {
 		var _n0 = _Utils_Tuple2(msg, model);
@@ -6308,32 +6381,60 @@ var author$project$Main$update = F2(
 						{inner: inner}),
 					cmd);
 			case 'Incoming':
-				var _n3 = _n0.a.a;
-				var id = _n3.a;
-				var txt = _n3.b;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							inner: A2(
-								author$project$Main$Looking,
-								id,
-								author$project$Looking$initialModel(txt))
-						}),
-					A2(
-						elm$browser$Browser$Navigation$pushUrl,
-						model.key,
-						author$project$Routes$routeUrl(
-							author$project$Routes$Paste(id))));
-			default:
+				if (_n0.a.a.$ === 'TextArrived') {
+					var _n3 = _n0.a.a;
+					var id = _n3.a;
+					var txt = _n3.b;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								inner: A2(
+									author$project$Main$Looking,
+									id,
+									author$project$Looking$initialModel(txt))
+							}),
+						A2(
+							elm$browser$Browser$Navigation$pushUrl,
+							model.key,
+							author$project$Routes$routeUrl(
+								author$project$Routes$Paste(id))));
+				} else {
+					var id = _n0.a.a.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								inner: author$project$Main$noPeersError(id)
+							}),
+						elm$core$Platform$Cmd$none);
+				}
+			case 'NoOP':
 				var _n4 = _n0.a;
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			default:
+				var req = _n0.a.a;
+				if (req.$ === 'External') {
+					var href = req.a;
+					return _Utils_Tuple2(
+						model,
+						elm$browser$Browser$Navigation$load(href));
+				} else {
+					var url = req.a;
+					return _Utils_Tuple2(
+						model,
+						A2(
+							elm$browser$Browser$Navigation$pushUrl,
+							model.key,
+							elm$url$Url$toString(url)));
+				}
 		}
 	});
 var author$project$Main$InnerMsg = function (a) {
 	return {$: 'InnerMsg', a: a};
 };
 var author$project$Editing$Share = {$: 'Share'};
+var elm$html$Html$a = _VirtualDom_node('a');
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
@@ -6345,6 +6446,12 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
+var elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
 var author$project$Views$wrapHeader = function (rest) {
 	var title = A2(
 		elm$html$Html$div,
@@ -6354,7 +6461,17 @@ var author$project$Views$wrapHeader = function (rest) {
 			]),
 		_List_fromArray(
 			[
-				elm$html$Html$text('Peer Bin')
+				A2(
+				elm$html$Html$a,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$href(
+						author$project$Routes$routeUrl(author$project$Routes$NewPaste))
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Peer Bin')
+					]))
 			]));
 	return A2(
 		elm$html$Html$div,
@@ -6783,20 +6900,57 @@ var author$project$Main$EditingMsg = function (a) {
 var author$project$Main$LookingMsg = function (a) {
 	return {$: 'LookingMsg', a: a};
 };
+var author$project$Main$viewError = F2(
+	function (title, desc) {
+		return author$project$Views$wrapContainer(
+			_List_fromArray(
+				[
+					author$project$Views$wrapHeader(_List_Nil),
+					author$project$Views$wrapCodeArea(
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$div,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$class('error-title')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text(title)
+								])),
+							A2(
+							elm$html$Html$div,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$class('error-desc')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text(desc)
+								]))
+						]))
+				]));
+	});
 var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
 var author$project$Main$viewInner = function (model) {
-	if (model.$ === 'Editing') {
-		var m = model.a;
-		return A2(
-			elm$html$Html$map,
-			author$project$Main$EditingMsg,
-			author$project$Editing$view(m));
-	} else {
-		var m = model.b;
-		return A2(
-			elm$html$Html$map,
-			author$project$Main$LookingMsg,
-			author$project$Looking$view(m));
+	switch (model.$) {
+		case 'Editing':
+			var m = model.a;
+			return A2(
+				elm$html$Html$map,
+				author$project$Main$EditingMsg,
+				author$project$Editing$view(m));
+		case 'Looking':
+			var m = model.b;
+			return A2(
+				elm$html$Html$map,
+				author$project$Main$LookingMsg,
+				author$project$Looking$view(m));
+		default:
+			var _long = model.a;
+			var _short = model.b;
+			return A2(author$project$Main$viewError, _long, _short);
 	}
 };
 var author$project$Main$view = function (model) {
@@ -6813,15 +6967,6 @@ var author$project$Main$view = function (model) {
 };
 var elm$browser$Browser$application = _Browser_application;
 var author$project$Main$main = elm$browser$Browser$application(
-	{
-		init: author$project$Main$init,
-		onUrlChange: author$project$Main$UrlChange,
-		onUrlRequest: function (_n0) {
-			return author$project$Main$NoOP;
-		},
-		subscriptions: author$project$Main$subscriptions,
-		update: author$project$Main$update,
-		view: author$project$Main$view
-	});
+	{init: author$project$Main$init, onUrlChange: author$project$Main$UrlChange, onUrlRequest: author$project$Main$UrlRequest, subscriptions: author$project$Main$subscriptions, update: author$project$Main$update, view: author$project$Main$view});
 _Platform_export({'Main':{'init':author$project$Main$main(
 	elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));

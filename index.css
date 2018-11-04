@@ -33,6 +33,12 @@ body {
     margin-left: 20px;
 }
 
+.header-title a {
+    text-decoration: none;
+    color: inherit;
+}
+
+
 .header .share {
     margin-left: auto;
     margin-right: 7%;

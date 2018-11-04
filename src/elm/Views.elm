@@ -7,6 +7,8 @@ module Views exposing
 import Html as H exposing (Html)
 import Html.Attributes as H
 
+import Routes exposing (Route(..), routeUrl)
+
 
 wrapContainer : List (Html msg) -> Html msg
 wrapContainer rest =
@@ -18,7 +20,9 @@ wrapHeader rest =
     let
         title =
             H.div [ H.class "header-title" ]
-                [ H.text "Peer Bin"
+                [ H.a [ H.href <| routeUrl NewPaste ]
+                    [ H.text "Peer Bin"
+                    ] 
                 ]
     in
     H.div [ H.class "header" ] <| title :: rest

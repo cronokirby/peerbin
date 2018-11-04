@@ -20,7 +20,7 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , onUrlRequest = \_ -> NoOP
+        , onUrlRequest = UrlRequest
         , onUrlChange = UrlChange
         }
 
@@ -158,6 +158,7 @@ type Msg
     = InnerMsg InnerMsg
     | UrlChange Url
     | Incoming Info
+    | UrlRequest Browser.UrlRequest
     | NoOP
 
 
@@ -185,6 +186,14 @@ update msg model =
 
         ( NoOP, _ ) ->
             ( model, Cmd.none )
+
+        ( UrlRequest req, _ ) ->
+            case req of
+                Browser.External href ->
+                    ( model, Nav.load href )
+
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
 
 
 updateInner : InnerMsg -> InnerModel -> ( InnerModel, Cmd Msg )

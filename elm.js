@@ -6064,7 +6064,7 @@ var author$project$Main$diffrouteModel = F2(
 	});
 var author$project$Main$noPeersError = function (id) {
 	var title = 'No Peers';
-	var desc = 'The paste \'' + (id + '\' has no one seeding it, so it cannot be downloaded :(');
+	var desc = 'The paste \'' + (id + ('\' doesn\'t seem to have any peers.' + ('It might still be seeded, but if it isn\'t' + ' it can no longer be downloaded :(')));
 	return A2(author$project$Main$ErrorModel, title, desc);
 };
 var author$project$Editing$update = F2(

@@ -4,7 +4,7 @@ html {
 }
 
 body {
-    background-color: rgb(61, 61, 75);
+    background-color: rgb(49, 49, 63);
     height: 100%;
     margin: 0;
 }
@@ -76,7 +76,7 @@ body {
 
 .header .language-input input {
     width: 100px;
-    margin-top: 22px;
+    margin-top: 18px;
 }
 
 .header .language-submit button {
@@ -104,6 +104,7 @@ body {
 
 
 .code-area {
+    background-color: rgb(61, 61, 77);
     flex-grow: 2;
     margin-left: auto;
     margin-right: auto;
@@ -112,8 +113,8 @@ body {
 }
 
 .code-area .text {
-    background-color: rgb(52, 52, 70);
-    color: lightgray;
+    background-color: rgb(61, 61, 77);
+    color: rgb(236, 236, 236);
     font-family: monospace;
     font-size: 16px;
     width: 100%;
@@ -123,5 +124,23 @@ body {
     padding-top: 10px;
     resize: none;    
     white-space: pre;
+}
+
+
+.error-title {
+    color: rgb(209, 71, 71);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    font-size: 36px;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.error-desc {
+    color: rgb(236, 236, 236);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    margin-top: 10px;
+    margin-left: 20px;
 }
     

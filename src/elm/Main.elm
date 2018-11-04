@@ -11,6 +11,7 @@ import Json.Encode as E
 import Looking
 import Routes exposing (Route(..), parseRoute, routeUrl)
 import Url exposing (Url)
+import Views
 
 
 main : Program () Model Msg
@@ -92,13 +93,15 @@ decodeInfo =
 type InnerModel
     = Editing Editing.Model
     | Looking Id Looking.Model
+    | ErrorModel String String
 
 
 routeModel : Url -> InnerModel
 routeModel url =
     case parseRoute url of
         NotFound ->
-            Looking "" <| Looking.initialModel "Not Found"
+            ErrorModel "Not Found"
+                "This page doesn't seem to exist :("
 
         NewPaste ->
             Editing <| Editing.initialModel
@@ -221,6 +224,9 @@ updateInner msg model =
         ( LookingMsg _, Editing _ ) ->
             ( model, Cmd.none )
 
+        ( _, ErrorModel _ _ ) ->
+            ( model, Cmd.none )
+
 
 
 {- Subscriptions -}
@@ -255,3 +261,21 @@ viewInner model =
 
         Looking _ m ->
             map LookingMsg <| Looking.view m
+
+        ErrorModel long short ->
+            viewError long short
+
+
+viewError : String -> String -> Html msg
+viewError title desc =
+    Views.wrapContainer
+        [ Views.wrapHeader []
+        , Views.wrapCodeArea
+            [ H.div [ H.class "error-title" ]
+                [ H.text title
+                ]
+            , H.div [ H.class "error-desc" ]
+                [ H.text desc
+                ]
+            ]
+        ]

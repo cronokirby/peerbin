@@ -19,7 +19,7 @@
     node: document.getElementById('elm')
   });
   var client = new WebTorrent();
-  const onTorrent = function(torrent) {
+  const onTorrentDone = function(torrent) {
     console.log('Torrent ' + torrent.infoHash + ' has finished');
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
@@ -46,11 +46,20 @@
     if (data.seed) {
       console.log('Seeding');
       var file = new File([data.seed], 'unnamed.txt');
-      client.seed(file, onTorrent);
+      client.seed(file, onTorrentDone);
     }
     if (data.fetch) {
       console.log('Fetching', data.fetch);
-      var torrent = client.add(data.fetch, {announce: trackers}, onTorrent);
+      var torrent = client.get(data.fetch);
+      if (torrent) {
+        if (torrent.progress === 1) {
+          onTorrentDone(torrent);
+        } else {
+          torrent.on('done', onTorrentDone);
+        }
+      } else {
+        client.add(data.fetch, {announce: trackers}, onTorrentDone);
+      }
     }
   });
   </script>

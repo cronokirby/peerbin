@@ -22,12 +22,16 @@
   const onTorrentDone = function(torrent) {
     console.log('Torrent ' + torrent.infoHash + ' has finished');
     var reader = new FileReader();
+    var file = torrent.files[0];
     reader.addEventListener("loadend", function() {
       var id = torrent.infoHash;
       var text = reader.result;
-      app.ports.inClient.send({textArrived: {id: id, text: text}});
+      console.log(file.name);
+      app.ports.inClient.send({textArrived: {
+        id: id, text: text, lang: file.name
+      }});
     });
-    torrent.files[0].getBlob(function(err, blob) {
+    file.getBlob(function(err, blob) {
       if (err) throw err;
       reader.readAsText(blob);
     });
@@ -45,7 +49,7 @@
     }
     if (data.seed) {
       console.log('Seeding');
-      var file = new File([data.seed], 'unnamed.txt');
+      var file = new File([data.seed], data.lang);
       client.seed(file, onTorrentDone);
     }
     if (data.fetch) {

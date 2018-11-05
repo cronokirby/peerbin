@@ -7,10 +7,10 @@ module Looking exposing
     , view
     )
 
+import FeatherIcons as Icons
 import Html as H exposing (Html)
 import Html.Attributes as H
 import Html.Events as H
-import FeatherIcons as Icons
 import Views
 
 
@@ -24,10 +24,10 @@ type alias Model =
     }
 
 
-initialModel : String -> Model
-initialModel txt =
+initialModel : String -> String -> Model
+initialModel txt lang =
     { text = txt
-    , lang = "plaintext"
+    , lang = lang
     }
 
 
@@ -62,28 +62,12 @@ update msg model =
 view : Model -> Html Msg
 view model =
     Views.wrapContainer
-        [ Views.wrapHeader [ langInput model ]
+        [ Views.wrapHeader
+            [ Views.langInput ChangeLang SubmitLang model.lang Icons.edit
+            ]
         , viewCode model
         ]
 
-
-langInput : Model -> Html Msg
-langInput model =
-    H.div [ H.class "language-container" ]
-        [ H.div [ H.class "language-input"]
-            [ H.input
-                [ H.type_ "text"
-                , H.onInput ChangeLang
-                , H.value model.lang
-                ]
-                []
-            ]
-        , H.div [ H.class "language-submit" ]
-            [ H.button [ H.onClick SubmitLang ]
-                [ Icons.edit |> Icons.toHtml []
-                ]
-            ]
-        ]
 
 viewCode : Model -> Html Msg
 viewCode model =

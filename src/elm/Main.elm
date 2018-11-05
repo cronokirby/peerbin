@@ -42,7 +42,7 @@ type alias Id =
 
 type OutInfo
     = Highlight String String
-    | Seed String
+    | Seed String String
     | Fetch Id
 
 
@@ -60,8 +60,11 @@ sendOut info =
             E.object [ ( "highlight", highlight ) ]
                 |> outClient
 
-        Seed txt ->
-            E.object [ ( "seed", E.string txt ) ]
+        Seed txt lang ->
+            E.object 
+                [ ( "seed", E.string txt )
+                , ( "lang", E.string lang )
+                ]
                 |> outClient
 
         Fetch id ->
@@ -70,7 +73,7 @@ sendOut info =
 
 
 type Info
-    = TextArrived Id String
+    = TextArrived Id String String
     | NoPeers Id
 
 
@@ -78,9 +81,10 @@ infoDecoder : D.Decoder Info
 infoDecoder =
     D.oneOf
         [ D.field "textArrived" <|
-            D.map2 TextArrived
+            D.map3 TextArrived
                 (D.field "id" D.string)
                 (D.field "text" D.string)
+                (D.field "lang" D.string)
         , D.field "noPeers" <|
             D.map NoPeers
                 (D.field "id" D.string)
@@ -129,7 +133,7 @@ routeModel url =
             Editing <| Editing.initialModel
 
         Paste id ->
-            Looking id <| Looking.initialModel "Loading"
+            Looking id <| Looking.initialModel "Loading" "plaintext"
 
 
 routeCmd : Url -> Cmd msg
@@ -204,8 +208,8 @@ update msg model =
             in
             ( { model | inner = inner }, cmd )
 
-        ( Incoming (TextArrived id txt), _ ) ->
-            ( { model | inner = Looking id <| Looking.initialModel txt }
+        ( Incoming (TextArrived id txt lang), _ ) ->
+            ( { model | inner = Looking id <| Looking.initialModel txt lang }
             , Nav.pushUrl model.key <| routeUrl (Paste id)
             )
 
@@ -228,7 +232,7 @@ updateInner : InnerMsg -> InnerModel -> ( InnerModel, Cmd Msg )
 updateInner msg model =
     case ( msg, model ) of
         ( EditingMsg Editing.Share, Editing mod ) ->
-            ( model, sendOut (Seed mod.text) )
+            ( model, sendOut (Seed mod.text mod.lang) )
 
         ( EditingMsg msg1, Editing model1 ) ->
             ( Editing <| Editing.update msg1 model1, Cmd.none )

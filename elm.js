@@ -4836,13 +4836,17 @@ var author$project$Main$sendOut = function (info) {
 						])));
 		case 'Seed':
 			var txt = info.a;
+			var lang = info.b;
 			return author$project$Main$outClient(
 				elm$json$Json$Encode$object(
 					_List_fromArray(
 						[
 							_Utils_Tuple2(
 							'seed',
-							elm$json$Json$Encode$string(txt))
+							elm$json$Json$Encode$string(txt)),
+							_Utils_Tuple2(
+							'lang',
+							elm$json$Json$Encode$string(lang))
 						])));
 		default:
 			var id = info.a;
@@ -5935,10 +5939,11 @@ var author$project$Main$routeCmd = function (url) {
 				author$project$Main$Fetch(id));
 	}
 };
-var author$project$Editing$initialModel = {text: ''};
-var author$project$Looking$initialModel = function (txt) {
-	return {lang: 'plaintext', text: txt};
-};
+var author$project$Editing$initialModel = {lang: 'plaintext', text: ''};
+var author$project$Looking$initialModel = F2(
+	function (txt, lang) {
+		return {lang: lang, text: txt};
+	});
 var author$project$Main$Editing = function (a) {
 	return {$: 'Editing', a: a};
 };
@@ -5962,7 +5967,7 @@ var author$project$Main$routeModel = function (url) {
 			return A2(
 				author$project$Main$Looking,
 				id,
-				author$project$Looking$initialModel('Loading'));
+				A2(author$project$Looking$initialModel, 'Loading', 'plaintext'));
 	}
 };
 var author$project$Main$init = F3(
@@ -5981,13 +5986,13 @@ var author$project$Main$NoOP = {$: 'NoOP'};
 var author$project$Main$NoPeers = function (a) {
 	return {$: 'NoPeers', a: a};
 };
-var author$project$Main$TextArrived = F2(
-	function (a, b) {
-		return {$: 'TextArrived', a: a, b: b};
+var author$project$Main$TextArrived = F3(
+	function (a, b, c) {
+		return {$: 'TextArrived', a: a, b: b, c: c};
 	});
 var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$json$Json$Decode$map3 = _Json_map3;
 var elm$json$Json$Decode$oneOf = _Json_oneOf;
 var elm$json$Json$Decode$string = _Json_decodeString;
 var author$project$Main$infoDecoder = elm$json$Json$Decode$oneOf(
@@ -5996,11 +6001,12 @@ var author$project$Main$infoDecoder = elm$json$Json$Decode$oneOf(
 			A2(
 			elm$json$Json$Decode$field,
 			'textArrived',
-			A3(
-				elm$json$Json$Decode$map2,
+			A4(
+				elm$json$Json$Decode$map3,
 				author$project$Main$TextArrived,
 				A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$string),
-				A2(elm$json$Json$Decode$field, 'text', elm$json$Json$Decode$string))),
+				A2(elm$json$Json$Decode$field, 'text', elm$json$Json$Decode$string),
+				A2(elm$json$Json$Decode$field, 'lang', elm$json$Json$Decode$string))),
 			A2(
 			elm$json$Json$Decode$field,
 			'noPeers',
@@ -6069,13 +6075,19 @@ var author$project$Main$noPeersError = function (id) {
 };
 var author$project$Editing$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'InputText') {
-			var txt = msg.a;
-			return _Utils_update(
-				model,
-				{text: txt});
-		} else {
-			return model;
+		switch (msg.$) {
+			case 'InputText':
+				var txt = msg.a;
+				return _Utils_update(
+					model,
+					{text: txt});
+			case 'InputLang':
+				var txt = msg.a;
+				return _Utils_update(
+					model,
+					{lang: txt});
+			default:
+				return model;
 		}
 	});
 var author$project$Looking$NoParentMsg = {$: 'NoParentMsg'};
@@ -6102,9 +6114,10 @@ var author$project$Main$Highlight = F2(
 	function (a, b) {
 		return {$: 'Highlight', a: a, b: b};
 	});
-var author$project$Main$Seed = function (a) {
-	return {$: 'Seed', a: a};
-};
+var author$project$Main$Seed = F2(
+	function (a, b) {
+		return {$: 'Seed', a: a, b: b};
+	});
 var author$project$Main$updateInner = F2(
 	function (msg, model) {
 		var _n0 = _Utils_Tuple2(msg, model);
@@ -6143,7 +6156,7 @@ var author$project$Main$updateInner = F2(
 						return _Utils_Tuple2(
 							model,
 							author$project$Main$sendOut(
-								author$project$Main$Seed(mod.text)));
+								A2(author$project$Main$Seed, mod.text, mod.lang)));
 					} else {
 						var msg1 = _n0.a.a;
 						var model1 = _n0.b.a;
@@ -6297,6 +6310,7 @@ var elm$core$Task$perform = F2(
 			elm$core$Task$Perform(
 				A2(elm$core$Task$map, toMessage, task)));
 	});
+var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
@@ -6385,6 +6399,7 @@ var author$project$Main$update = F2(
 					var _n3 = _n0.a.a;
 					var id = _n3.a;
 					var txt = _n3.b;
+					var lang = _n3.c;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -6392,7 +6407,7 @@ var author$project$Main$update = F2(
 								inner: A2(
 									author$project$Main$Looking,
 									id,
-									author$project$Looking$initialModel(txt))
+									A2(author$project$Looking$initialModel, txt, lang))
 							}),
 						A2(
 							elm$browser$Browser$Navigation$pushUrl,
@@ -6433,11 +6448,13 @@ var author$project$Main$update = F2(
 var author$project$Main$InnerMsg = function (a) {
 	return {$: 'InnerMsg', a: a};
 };
+var author$project$Editing$InputLang = function (a) {
+	return {$: 'InputLang', a: a};
+};
 var author$project$Editing$Share = {$: 'Share'};
-var elm$html$Html$a = _VirtualDom_node('a');
+var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
-var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var elm$html$Html$input = _VirtualDom_node('input');
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -6446,42 +6463,8 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
-var elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
-var author$project$Views$wrapHeader = function (rest) {
-	var title = A2(
-		elm$html$Html$div,
-		_List_fromArray(
-			[
-				elm$html$Html$Attributes$class('header-title')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				elm$html$Html$a,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$href(
-						author$project$Routes$routeUrl(author$project$Routes$NewPaste))
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Peer Bin')
-					]))
-			]));
-	return A2(
-		elm$html$Html$div,
-		_List_fromArray(
-			[
-				elm$html$Html$Attributes$class('header')
-			]),
-		A2(elm$core$List$cons, title, rest));
-};
-var elm$html$Html$button = _VirtualDom_node('button');
+var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
+var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6498,6 +6481,37 @@ var elm$html$Html$Events$onClick = function (msg) {
 		elm$html$Html$Events$on,
 		'click',
 		elm$json$Json$Decode$succeed(msg));
+};
+var elm$html$Html$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
+};
+var elm$html$Html$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
+	});
+var elm$html$Html$Events$targetValue = A2(
+	elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	elm$json$Json$Decode$string);
+var elm$html$Html$Events$onInput = function (tagger) {
+	return A2(
+		elm$html$Html$Events$stopPropagationOn,
+		'input',
+		A2(
+			elm$json$Json$Decode$map,
+			elm$html$Html$Events$alwaysStop,
+			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
 var elm$core$String$fromFloat = _String_fromNumber;
 var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
@@ -6554,6 +6568,93 @@ var feathericons$elm_feather$FeatherIcons$toHtml = F2(
 				elm$svg$Svg$map(elm$core$Basics$never),
 				src));
 	});
+var author$project$Views$langInput = F4(
+	function (onInputMsg, onClickMsg, lang, icon) {
+		return A2(
+			elm$html$Html$div,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('language-container')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('language-input')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$input,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$type_('text'),
+									elm$html$Html$Events$onInput(onInputMsg),
+									elm$html$Html$Attributes$value(lang)
+								]),
+							_List_Nil)
+						])),
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('language-submit')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$button,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onClick(onClickMsg)
+								]),
+							_List_fromArray(
+								[
+									A2(feathericons$elm_feather$FeatherIcons$toHtml, _List_Nil, icon)
+								]))
+						]))
+				]));
+	});
+var elm$html$Html$a = _VirtualDom_node('a');
+var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var author$project$Views$wrapHeader = function (rest) {
+	var title = A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('header-title')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$a,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$href(
+						author$project$Routes$routeUrl(author$project$Routes$NewPaste))
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Peer Bin')
+					]))
+			]));
+	return A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('header')
+			]),
+		A2(elm$core$List$cons, title, rest));
+};
 var elm$svg$Svg$line = elm$svg$Svg$trustedNode('line');
 var elm$svg$Svg$path = elm$svg$Svg$trustedNode('path');
 var elm$svg$Svg$polyline = elm$svg$Svg$trustedNode('polyline');
@@ -6596,9 +6697,9 @@ var feathericons$elm_feather$FeatherIcons$xmlns = function (s) {
 		'xmlns',
 		elm$json$Json$Encode$string(s));
 };
-var feathericons$elm_feather$FeatherIcons$upload = A2(
+var feathericons$elm_feather$FeatherIcons$share = A2(
 	feathericons$elm_feather$FeatherIcons$makeBuilder,
-	'upload',
+	'share',
 	_List_fromArray(
 		[
 			A2(
@@ -6614,7 +6715,7 @@ var feathericons$elm_feather$FeatherIcons$upload = A2(
 					elm$svg$Svg$Attributes$strokeWidth('2'),
 					elm$svg$Svg$Attributes$strokeLinecap('round'),
 					elm$svg$Svg$Attributes$strokeLinejoin('round'),
-					elm$svg$Svg$Attributes$class('feather feather-upload')
+					elm$svg$Svg$Attributes$class('feather feather-share')
 				]),
 			_List_fromArray(
 				[
@@ -6622,14 +6723,14 @@ var feathericons$elm_feather$FeatherIcons$upload = A2(
 					elm$svg$Svg$path,
 					_List_fromArray(
 						[
-							elm$svg$Svg$Attributes$d('M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4')
+							elm$svg$Svg$Attributes$d('M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8')
 						]),
 					_List_Nil),
 					A2(
 					elm$svg$Svg$polyline,
 					_List_fromArray(
 						[
-							elm$svg$Svg$Attributes$points('17 8 12 3 7 8')
+							elm$svg$Svg$Attributes$points('16 6 12 2 8 6')
 						]),
 					_List_Nil),
 					A2(
@@ -6637,36 +6738,20 @@ var feathericons$elm_feather$FeatherIcons$upload = A2(
 					_List_fromArray(
 						[
 							elm$svg$Svg$Attributes$x1('12'),
-							elm$svg$Svg$Attributes$y1('3'),
+							elm$svg$Svg$Attributes$y1('2'),
 							elm$svg$Svg$Attributes$x2('12'),
 							elm$svg$Svg$Attributes$y2('15')
 						]),
 					_List_Nil)
 				]))
 		]));
-var author$project$Editing$header = author$project$Views$wrapHeader(
-	_List_fromArray(
-		[
-			A2(
-			elm$html$Html$div,
-			_List_fromArray(
-				[
-					elm$html$Html$Attributes$class('share')
-				]),
-			_List_fromArray(
-				[
-					A2(
-					elm$html$Html$button,
-					_List_fromArray(
-						[
-							elm$html$Html$Events$onClick(author$project$Editing$Share)
-						]),
-					_List_fromArray(
-						[
-							A2(feathericons$elm_feather$FeatherIcons$toHtml, _List_Nil, feathericons$elm_feather$FeatherIcons$upload)
-						]))
-				]))
-		]));
+var author$project$Editing$header = function (model) {
+	return author$project$Views$wrapHeader(
+		_List_fromArray(
+			[
+				A4(author$project$Views$langInput, author$project$Editing$InputLang, author$project$Editing$Share, model.lang, feathericons$elm_feather$FeatherIcons$share)
+			]));
+};
 var author$project$Editing$InputText = function (a) {
 	return {$: 'InputText', a: a};
 };
@@ -6690,37 +6775,6 @@ var elm$html$Html$Attributes$boolProperty = F2(
 			elm$json$Json$Encode$bool(bool));
 	});
 var elm$html$Html$Attributes$spellcheck = elm$html$Html$Attributes$boolProperty('spellcheck');
-var elm$html$Html$Events$alwaysStop = function (x) {
-	return _Utils_Tuple2(x, true);
-};
-var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
-	return {$: 'MayStopPropagation', a: a};
-};
-var elm$html$Html$Events$stopPropagationOn = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
-	});
-var elm$html$Html$Events$targetValue = A2(
-	elm$json$Json$Decode$at,
-	_List_fromArray(
-		['target', 'value']),
-	elm$json$Json$Decode$string);
-var elm$html$Html$Events$onInput = function (tagger) {
-	return A2(
-		elm$html$Html$Events$stopPropagationOn,
-		'input',
-		A2(
-			elm$json$Json$Decode$map,
-			elm$html$Html$Events$alwaysStop,
-			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
-};
 var author$project$Editing$textArea = function (model) {
 	return author$project$Views$wrapCodeArea(
 		_List_fromArray(
@@ -6750,7 +6804,7 @@ var author$project$Editing$view = function (model) {
 	return author$project$Views$wrapContainer(
 		_List_fromArray(
 			[
-				author$project$Editing$header,
+				author$project$Editing$header(model),
 				author$project$Editing$textArea(model)
 			]));
 };
@@ -6758,9 +6812,40 @@ var author$project$Looking$ChangeLang = function (a) {
 	return {$: 'ChangeLang', a: a};
 };
 var author$project$Looking$SubmitLang = {$: 'SubmitLang'};
-var elm$html$Html$input = _VirtualDom_node('input');
-var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
-var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
+var elm$html$Html$code = _VirtualDom_node('code');
+var elm$html$Html$pre = _VirtualDom_node('pre');
+var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
+var author$project$Looking$viewCode = function (model) {
+	return author$project$Views$wrapCodeArea(
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('text')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$pre,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								elm$html$Html$code,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$id('code-view')
+									]),
+								_List_fromArray(
+									[
+										elm$html$Html$text(model.text)
+									]))
+							]))
+					]))
+			]));
+};
 var elm$svg$Svg$polygon = elm$svg$Svg$trustedNode('polygon');
 var feathericons$elm_feather$FeatherIcons$edit = A2(
 	feathericons$elm_feather$FeatherIcons$makeBuilder,
@@ -6800,88 +6885,6 @@ var feathericons$elm_feather$FeatherIcons$edit = A2(
 					_List_Nil)
 				]))
 		]));
-var author$project$Looking$langInput = function (model) {
-	return A2(
-		elm$html$Html$div,
-		_List_fromArray(
-			[
-				elm$html$Html$Attributes$class('language-container')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				elm$html$Html$div,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('language-input')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$input,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$type_('text'),
-								elm$html$Html$Events$onInput(author$project$Looking$ChangeLang),
-								elm$html$Html$Attributes$value(model.lang)
-							]),
-						_List_Nil)
-					])),
-				A2(
-				elm$html$Html$div,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('language-submit')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$button,
-						_List_fromArray(
-							[
-								elm$html$Html$Events$onClick(author$project$Looking$SubmitLang)
-							]),
-						_List_fromArray(
-							[
-								A2(feathericons$elm_feather$FeatherIcons$toHtml, _List_Nil, feathericons$elm_feather$FeatherIcons$edit)
-							]))
-					]))
-			]));
-};
-var elm$html$Html$code = _VirtualDom_node('code');
-var elm$html$Html$pre = _VirtualDom_node('pre');
-var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
-var author$project$Looking$viewCode = function (model) {
-	return author$project$Views$wrapCodeArea(
-		_List_fromArray(
-			[
-				A2(
-				elm$html$Html$div,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('text')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$pre,
-						_List_Nil,
-						_List_fromArray(
-							[
-								A2(
-								elm$html$Html$code,
-								_List_fromArray(
-									[
-										elm$html$Html$Attributes$id('code-view')
-									]),
-								_List_fromArray(
-									[
-										elm$html$Html$text(model.text)
-									]))
-							]))
-					]))
-			]));
-};
 var author$project$Looking$view = function (model) {
 	return author$project$Views$wrapContainer(
 		_List_fromArray(
@@ -6889,7 +6892,7 @@ var author$project$Looking$view = function (model) {
 				author$project$Views$wrapHeader(
 				_List_fromArray(
 					[
-						author$project$Looking$langInput(model)
+						A4(author$project$Views$langInput, author$project$Looking$ChangeLang, author$project$Looking$SubmitLang, model.lang, feathericons$elm_feather$FeatherIcons$edit)
 					])),
 				author$project$Looking$viewCode(model)
 			]));

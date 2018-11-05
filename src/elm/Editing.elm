@@ -6,10 +6,10 @@ module Editing exposing
     , view
     )
 
+import FeatherIcons as Icons
 import Html as H exposing (Html)
 import Html.Attributes as H
 import Html.Events as H
-import FeatherIcons as Icons
 import Views
 
 
@@ -19,12 +19,13 @@ import Views
 
 type alias Model =
     { text : String
+    , lang : String
     }
 
 
 initialModel : Model
 initialModel =
-    { text = "" }
+    { text = "", lang = "plaintext" }
 
 
 
@@ -33,6 +34,7 @@ initialModel =
 
 type Msg
     = InputText String
+    | InputLang String
     | Share
 
 
@@ -41,6 +43,9 @@ update msg model =
     case msg of
         InputText txt ->
             { model | text = txt }
+
+        InputLang txt ->
+            { model | lang = txt }
 
         -- This is handled by the parent component
         Share ->
@@ -54,19 +59,15 @@ update msg model =
 view : Model -> Html Msg
 view model =
     Views.wrapContainer
-        [ header
+        [ header model
         , textArea model
         ]
 
 
-header : Html Msg
-header =
-    Views.wrapHeader <|
-        [ H.div [ H.class "share" ]
-            [ H.button [ H.onClick Share ]
-                [ Icons.upload |> Icons.toHtml []
-                ]
-            ]
+header : Model -> Html Msg
+header model =
+    Views.wrapHeader
+        [ Views.langInput InputLang Share model.lang Icons.share
         ]
 
 
